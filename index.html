@@ -3,757 +3,269 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Wojsko QD</title>
+  <title>Wojsko QD — Final UI</title>
   <style>
+    /* ---------- Design tokens ---------- */
     :root{
-      --bg:#f3f6f8;
-      --card:#ffffff;
-      --text:#0b0f17;
-      --muted:#6b7684;
-      --accent:#2f8f55;
-      --danger:#e74c3c;
-      --glass: rgba(255,255,255,0.6);
-    }
-    [data-theme="dark"]{
-      --bg:#0b0c0f;
-      --card:#0f1114;
-      --text:#e6eef6;
+      --bg:#0f1720;
+      --panel:#0b1220;
+      --card:#0f1724;
       --muted:#9aa6b2;
-      --accent:#3fc37a;
-      --glass: rgba(8,9,11,0.6);
+      --accent:#2f8f55;
+      --accent-2:#3fc37a;
+      --danger:#e64a4a;
+      --glass: rgba(255,255,255,0.03);
+      --glass-2: rgba(255,255,255,0.04);
+      --glass-3: rgba(0,0,0,0.45);
+      --radius:14px;
+      --blur:8px;
+    }
+    [data-theme="light"]{
+      --bg:#e9f1f0;
+      --panel:#ffffff;
+      --card:#ffffff;
+      --muted:#4b5563;
+      --accent:#25603b;
+      --accent-2:#2f8f55;
+      --danger:#d64545;
+      --glass: rgba(0,0,0,0.03);
+      --glass-2: rgba(0,0,0,0.04);
+      --glass-3: rgba(255,255,255,0.7);
     }
 
-    *{box-sizing:border-box;font-family:Inter,Segoe UI,system-ui,Helvetica,Arial;margin:0}
-    html,body{height:100%}
-    body{
-      background:var(--bg);
-      color:var(--text);
-      display:flex;
-      flex-direction:column;
-      min-height:100vh;
+    *{box-sizing:border-box;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+    html,body{height:100%;margin:0}
+    body{background:var(--bg);color:whitesmoke;overflow:hidden}
+    /* background image */
+    .bg {
+      position:fixed;inset:0;background-image:linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.45)), url("https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=1600&auto=format&fit=crop&ixlib=rb-4.0.3&s=0f1b2c5b6d08f7a2b9a87f2a2b9e6e80");
+      background-size:cover;background-position:center;filter:brightness(0.7);
+      z-index:0;
+    }
+    .app {
+      position:relative;z-index:1;height:100vh;display:flex;flex-direction:column;
+      backdrop-filter: blur(var(--blur));
+      -webkit-backdrop-filter: blur(var(--blur));
     }
 
-    header{
-      height:64px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:0 18px;
-      background:linear-gradient(180deg, rgba(0,0,0,0.03), transparent);
-      border-bottom:1px solid rgba(0,0,0,0.06);
-    }
-    .logo{font-weight:800;letter-spacing:1px}
-    #topControls{display:flex;align-items:center;gap:12px}
+    header{height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.06));box-shadow:0 6px 16px rgba(0,0,0,0.35)}
+    .logo{font-weight:800;letter-spacing:1px;color:#fff;font-size:18px}
+    .top-right{display:flex;align-items:center;gap:12px}
 
-    main{flex:1;display:flex;gap:14px;padding:18px;align-items:stretch}
+    main{flex:1;display:flex;gap:18px;padding:22px;align-items:flex-start;overflow:hidden}
+    /* Left column - chat */
+    .left { flex:1; min-width:320px; display:flex;flex-direction:column; gap:16px; }
+    .card { background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:var(--radius); padding:14px; box-shadow: 0 8px 30px rgba(1,8,15,0.5); border:1px solid rgba(255,255,255,0.04); color:#e7eef6 }
+    .chatHeader{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .chatHeader h3{margin:0;font-size:16px}
+    #messages{height:62vh;overflow:auto;padding:12px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent); border:1px dashed rgba(255,255,255,0.03)}
+    .msg{margin-bottom:10px;padding:10px;border-radius:10px;max-width:76%}
+    .msg.me{align-self:flex-end;background:linear-gradient(90deg, rgba(47,143,85,0.09), rgba(47,143,85,0.02));border:1px solid rgba(47,143,85,0.07)}
+    .msg.other{background:rgba(255,255,255,0.02);border-left:3px solid rgba(255,255,255,0.03)}
+    .sendRow{display:flex;gap:10px;margin-top:10px}
+    .sendRow input{flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
 
-    /* left / chat area */
-    .leftPanel{flex:1;display:flex;flex-direction:column;gap:14px;min-width:0}
-    .card{background:var(--card);border-radius:14px;padding:12px;box-shadow:0 6px 18px rgba(2,6,23,0.06);border:1px solid rgba(0,0,0,0.04)}
-    #chat{display:flex;flex-direction:column;min-height:400px;height:calc(100vh - 220px)}
-    #messages{flex:1;overflow:auto;padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(0,0,0,0.02), transparent);border:1px dashed rgba(0,0,0,0.03)}
-    .msg{margin-bottom:10px;padding:8px;border-radius:10px;max-width:78%}
-    .msg.me{background:linear-gradient(90deg, rgba(47,143,85,0.08), transparent);align-self:flex-end}
-    .msg.other{background:transparent;border-left:3px solid rgba(0,0,0,0.03)}
-    .send{display:flex;gap:8px;margin-top:8px}
-    input[type="text"], input[type="email"], input[type="password"], select{
-      padding:10px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);width:100%;background:transparent;color:var(--text)
+    /* Right column - sidebar */
+    aside.right { width:380px; min-width:260px; display:flex;flex-direction:column; gap:14px; position:relative; transition:width 0.28s ease; }
+    #sideToggle {
+      position:absolute;left:-46px;top:24px;width:46px;height:62px;border-radius:12px;background:linear-gradient(180deg,var(--card),rgba(255,255,255,0.04));display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid rgba(255,255,255,0.04);
+      box-shadow:0 10px 30px rgba(0,0,0,0.45);
+      color:#fff;font-weight:700;font-size:20px;
     }
-    button{padding:8px 12px;border-radius:10px;border:0;background:var(--accent);color:white;cursor:pointer}
-    .pill{padding:6px 10px;border-radius:999px;background:var(--glass);border:1px solid rgba(0,0,0,0.04);cursor:pointer}
-    .small{font-size:13px;color:var(--muted)}
-    .badge{font-size:12px;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,0.05)}
-
-    /* right / sidebar */
-    aside.right{width:360px;display:flex;flex-direction:column;gap:12px;position:relative;min-width:60px}
-    #sideToggle{
-      position:absolute;left:-36px;top:20px;width:36px;height:56px;border-radius:8px;
-      background:var(--card);display:flex;align-items:center;justify-content:center;
-      box-shadow:0 6px 12px rgba(2,6,23,0.06);cursor:pointer;border:1px solid rgba(0,0,0,0.04);
-    }
-    .user-table{max-height:62vh;overflow:auto;border-radius:8px;margin-top:8px}
-    .user-row{display:flex;align-items:center;justify-content:space-between;padding:10px;border-bottom:1px solid rgba(0,0,0,0.03)}
-    .user-left{display:flex;gap:10px;align-items:center}
-    .dot{width:12px;height:12px;border-radius:50%;box-shadow:0 0 6px rgba(0,0,0,0.08)}
+    .soldiersList { max-height:66vh; overflow:auto; border-radius:10px; margin-top:8px; padding:6px; background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00)); }
+    .soldier{display:flex;align-items:center;justify-content:space-between;padding:10px;border-bottom:1px solid rgba(255,255,255,0.03)}
+    .leftInfo{display:flex;align-items:center;gap:12px}
+    .avatarDot{width:14px;height:14px;border-radius:50%}
     .rankLabel{font-weight:700}
-    .hoverPlus{display:inline-block;padding:6px;border-radius:8px;border:1px solid rgba(0,0,0,0.04);cursor:pointer;margin-left:8px;background:transparent}
+    .plusBtn{padding:6px 10px;border-radius:10px;background:rgba(255,255,255,0.02);cursor:pointer;border:1px solid rgba(255,255,255,0.03)}
 
-    /* modal / overlay */
-    #modalRoot{z-index:9999}
-    #overlayBlock{
-      position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;
-      color:white;font-size:22px;font-weight:700;display:none
-    }
-    .modal{width:420px;max-width:94%;border-radius:12px;padding:12px}
+    /* Modal (overlay) */
+    #modalRoot{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:999}
+    .modalCard { width:420px; max-width:94%; padding:18px;border-radius:14px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); box-shadow:0 20px 60px rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.04) }
+    .tabs{display:flex;gap:8px;margin-bottom:12px}
+    .tabBtn{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:transparent;cursor:pointer;text-align:center}
+    .tabBtn.active{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:white;font-weight:700;border:0}
+    .formRow{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+    .formRow input{padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
 
-    /* responsive */
-    @media(max-width:900px){
+    /* Toasts bottom-right */
+    #toasts{position:fixed;right:18px;bottom:18px;z-index:1200;display:flex;flex-direction:column;gap:10px;align-items:flex-end}
+    .toast{min-width:220px;padding:10px 12px;border-radius:12px;background:rgba(0,0,0,0.6);color:white;box-shadow:0 8px 28px rgba(0,0,0,0.5);opacity:0;transform:translateY(12px);transition:all .28s ease}
+    .toast.show{opacity:1;transform:translateY(0)}
+    .toast.success{background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+    .toast.error{background:linear-gradient(90deg,var(--danger),#b83a3a)}
+
+    /* Block overlay */
+    #overlayBlock{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(0,0,0,0.8), rgba(0,0,0,0.9));z-index:1500;color:white;font-size:28px;font-weight:800}
+
+    /* small */
+    .small{font-size:13px;color:var(--muted)}
+    .muted{color:var(--muted)}
+    .center{display:flex;align-items:center;justify-content:center}
+    @media(max-width:960px){
       aside.right{display:none}
+      #sideToggle{display:none}
     }
   </style>
 </head>
-<body data-theme="light">
-  <header>
-    <div class="logo">WOJSKO QD</div>
-    <div id="topControls">
-      <div id="authArea"></div>
-      <div id="settingsGear" title="Ustawienia" style="cursor:pointer">⚙️</div>
-      <div id="adminPanelBtn" title="Panel admina" style="cursor:pointer;display:none">🛡️</div>
-    </div>
-  </header>
+<body data-theme="dark">
+  <div class="bg" aria-hidden="true"></div>
+  <div class="app">
+    <header>
+      <div class="logo">WOJSKO QD</div>
+      <div class="top-right">
+        <div id="authArea"></div>
+        <div id="settingsGear" title="Ustawienia" style="cursor:pointer">⚙️</div>
+        <div id="adminPanelBtn" title="Panel admina" style="cursor:pointer;display:none">🛡️</div>
+      </div>
+    </header>
 
-  <main>
-    <section class="leftPanel">
-      <div class="card">
-        <h3 style="margin-bottom:8px">Chat ogólny</h3>
-        <div id="chat">
-          <div id="messages" aria-live="polite"></div>
-          <div class="send">
-            <input id="msgInput" type="text" placeholder="Napisz wiadomość..." />
+    <main>
+      <section class="left">
+        <div class="card chatCard">
+          <div class="chatHeader">
+            <h3>Chat ogólny</h3>
+            <div class="small">Wojsko QD — komunikacja</div>
+          </div>
+          <div id="messages" role="log" aria-live="polite"></div>
+          <div class="sendRow">
+            <input id="msgInput" type="text" placeholder="Napisz wiadomość..." aria-label="wiadomość" />
             <button id="sendBtn">Wyślij</button>
           </div>
         </div>
-      </div>
 
-      <div class="card" id="profileCard">
-        <h4>INFORMACJE O TOBIE:</h4>
-        <div style="display:flex;flex-direction:column;gap:6px;padding-top:6px">
+        <div class="card" style="display:flex;flex-direction:column;gap:10px">
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <div><strong>IMIĘ:</strong></div>
-            <div id="profileName" class="small">—</div>
+            <div><strong>Panel informacyjny</strong></div>
+            <div class="small">Szybkie</div>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div><strong>NAZWISKO:</strong></div>
-            <div id="profileLastName" class="small">—</div>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div><strong>Gmail:</strong></div>
-            <div style="display:flex;align-items:center;gap:8px">
-              <div id="profileEmail" class="small">—</div>
-              <button id="changeEmailBtn" class="pill small">ZMIEN</button>
-            </div>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div><strong>RANGA:</strong></div>
-            <div id="profileRank" class="badge">—</div>
-          </div>
+          <div class="small">Ustawienia profilu przeniesione są do ⚙️ Ustawienia (nieedytowalne: imię i nazwisko).</div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <aside class="right">
-      <div id="sideToggle">❯</div>
+      <aside class="right">
+        <div id="sideToggle">❯</div>
 
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <strong>Żołnierze</strong>
-          <div class="small">Lista</div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <strong>Żołnierze</strong>
+            <div class="small">Lista</div>
+          </div>
+          <div id="soldiers" class="soldiersList"></div>
         </div>
-        <div id="userListWrap" class="user-table"></div>
-      </div>
 
-      <div class="card">
-        <strong>Kontrola rang</strong>
-        <p class="small">Najedź na użytkownika → kliknij <span style="font-weight:700">+</span> aby nadać rangę. Domyślnie: <strong>Szeregowy</strong>.</p>
-      </div>
-    </aside>
-  </main>
+        <div class="card">
+          <strong>Kontrola rang</strong>
+          <div class="small">Najedź na gracza → kliknij <span style="font-weight:700">+</span> aby zmienić rangę</div>
+        </div>
+      </aside>
+    </main>
 
-  <div id="modalRoot"></div>
-  <div id="overlayBlock">JESTEŚ CHWILOWO ZABLOKOWANY</div>
+    <!-- modal root -->
+    <div id="modalRoot" aria-hidden="false"></div>
+
+    <!-- toasts -->
+    <div id="toasts" aria-live="polite"></div>
+
+    <!-- block overlay -->
+    <div id="overlayBlock">JESTEŚ CHWILOWO ZABLOKOWANY</div>
+  </div>
 
   <script>
-  /*****************************************************************
-   * Wojsko QD - single-file app (localStorage + BroadcastChannel)
-   * - start: login/reg modal blocks until login
-   * - owner account pre-created: Mateusz Myjak (Generał)
-   * - chat, sidebar toggle, settings gear, admin panel for Generals
-   *****************************************************************/
+  /************************************************************************
+   * Wojsko QD - final UI single file
+   * - registration/login improved UX
+   * - moved profile to settings
+   * - toasts + WebAudio feedback
+   * - sidebar toggle, admin panel, ranks, presence, broadcast sync
+   ************************************************************************/
 
-  /* --------- Configuration & constants --------- */
+  /******************** Config ********************/
   const RANKS = ['Generał','Pułkownik','Major','Kapitan','Plutonowy','Szeregowy'];
   const DEFAULT_RANK = 'Szeregowy';
   const OWNER_EMAIL = 'mateuszgaming422@gmail.com';
   const OWNER_NAME = 'Mateusz';
   const OWNER_LAST = 'Myjak';
-  const OWNER_PASS = 'mateusz123'; // change in settings!
-  const STORAGE_USERS = 'qd_users_v3';
-  const STORAGE_CHAT = 'qd_chat_v3';
-  const STORAGE_SESSION = 'qd_session_v3';
-  const BROADCAST_NAME = 'qd_channel_v3';
+  const OWNER_PASS = 'mateusz123';
+  const STORAGE_USERS = 'qd_users_final';
+  const STORAGE_CHAT = 'qd_chat_final';
+  const STORAGE_SESSION = 'qd_session_final';
+  const BROADCAST_NAME = 'qd_channel_final';
 
-  /* --------- Utilities --------- */
+  /******************** Utils ********************/
   function uid(){ return 'id_' + Math.random().toString(36).slice(2,9); }
   function now(){ return Date.now(); }
-  function escapeHtml(s){ return (s+'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function el(sel){ return document.querySelector(sel); }
+  function createEl(tag, attrs = {}){ const d = document.createElement(tag); for(const k in attrs) d[k] = attrs[k]; return d; }
+  function escapeHtml(s){ return (s+'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
 
-  /* --------- Storage helpers --------- */
+  /******************** Storage ********************/
   function loadUsers(){ return JSON.parse(localStorage.getItem(STORAGE_USERS) || '[]'); }
-  function saveUsers(users){ localStorage.setItem(STORAGE_USERS, JSON.stringify(users)); }
+  function saveUsers(u){ localStorage.setItem(STORAGE_USERS, JSON.stringify(u)); }
   function loadChat(){ return JSON.parse(localStorage.getItem(STORAGE_CHAT) || '[]'); }
-  function saveChat(chat){ localStorage.setItem(STORAGE_CHAT, JSON.stringify(chat)); }
+  function saveChat(c){ localStorage.setItem(STORAGE_CHAT, JSON.stringify(c)); }
 
-  /* --------- Broadcast (sync between tabs) --------- */
+  /******************** Audio (WebAudio short tones) ********************/
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playTone(type='success'){
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    if(type === 'success'){
+      o.frequency.value = 880; // high
+      g.gain.value = 0.02;
+      o.start();
+      setTimeout(()=>{ o.stop(); }, 120);
+    } else {
+      o.frequency.value = 220; // low
+      g.gain.value = 0.04;
+      o.start();
+      setTimeout(()=>{ o.stop(); }, 200);
+    }
+  }
+
+  /******************** Toasts ********************/
+  const toastsEl = el('#toasts');
+  function showToast(message, type='info', time = 4000){
+    const t = document.createElement('div');
+    t.className = 'toast ' + (type === 'success' ? 'success' : (type === 'error' ? 'error' : ''));
+    t.textContent = message;
+    toastsEl.appendChild(t);
+    requestAnimationFrame(()=> t.classList.add('show'));
+    if(type === 'success') playTone('success');
+    if(type === 'error') playTone('error');
+    setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=> t.remove(), 320); }, time);
+  }
+
+  /******************** Broadcast channel sync ********************/
   const bc = ('BroadcastChannel' in window) ? new BroadcastChannel(BROADCAST_NAME) : null;
   function broadcast(type, payload){
     if(bc) bc.postMessage({type, payload});
-    // fallback trigger
     localStorage.setItem('qd_bcast_last', JSON.stringify({type, payload, t: now()}));
   }
   window.addEventListener('storage', (e) => {
     if(e.key === 'qd_bcast_last' && e.newValue){
       const ev = JSON.parse(e.newValue);
-      handleIncoming(ev.type, ev.payload, true);
+      onIncoming(ev.type, ev.payload);
+    }
+    if(e.key === STORAGE_USERS || e.key === STORAGE_CHAT){
+      renderSoldiers();
+      renderMessages();
     }
   });
-  if(bc) bc.onmessage = m => handleIncoming(m.data.type, m.data.payload, false);
+  if(bc) bc.onmessage = m => onIncoming(m.data.type, m.data.payload);
 
-  function handleIncoming(type, payload, fromStorage){
-    if(type === 'chat'){
-      const chat = loadChat();
-      chat.push(payload);
-      saveChat(chat);
-      renderMessages();
-    } else if(type === 'user-update'){
-      renderUserList();
-      renderProfile();
-    } else if(type === 'presence'){
-      const users = loadUsers();
-      const u = users.find(x => x.id === payload.id);
-      if(u){ u.lastSeen = payload.t; saveUsers(users); renderUserList(); renderProfile(); }
-    } else if(type === 'admin-action'){
-      applyAdminAction(payload);
-    }
+  function onIncoming(type, payload){
+    if(type === 'chat'){ const chat = loadChat(); chat.push(payload); saveChat(chat); renderMessages(); }
+    else if(type === 'user-update'){ renderSoldiers(); renderAuthArea(); renderSettingsProfile(); }
+    else if(type === 'presence'){ const users = loadUsers(); const u = users.find(x=>x.id===payload.id); if(u){ u.lastSeen = payload.t; saveUsers(users); renderSoldiers(); } }
+    else if(type === 'admin-action'){ applyAdminAction(payload); }
   }
 
-  /* --------- Ensure owner exists (only owner at start) --------- */
+  /******************** Ensure owner account ********************/
   (function ensureOwner(){
     const users = loadUsers();
     if(!users.find(u => u.email === OWNER_EMAIL)){
-      const owner = {
-        id: uid(),
-        name: OWNER_NAME,
-        lastName: OWNER_LAST,
-        email: OWNER_EMAIL,
-        pass: OWNER_PASS,
-        rank: 'Generał',
-        isOwner: true,
-        lastSeen: now(),
-        muted: false,
-        blocked: false,
-        warned: false
-      };
-      users.push(owner);
-      saveUsers(users);
-    }
-  })();
-
-  /* --------- Session & presence --------- */
-  let currentUser = null;
-  function setSession(user){
-    currentUser = user;
-    localStorage.setItem(STORAGE_SESSION, JSON.stringify({id: user.id, t: now()}));
-    renderAuthArea();
-    renderProfile();
-    markActive();
-    broadcast('presence', {id: user.id, t: now()});
-    renderUserList();
-  }
-  function clearSession(){
-    currentUser = null;
-    localStorage.removeItem(STORAGE_SESSION);
-    renderAuthArea();
-    renderProfile();
-  }
-
-  function markActive(){
-    if(!currentUser) return;
-    const users = loadUsers();
-    const u = users.find(x => x.id === currentUser.id);
-    if(u){ u.lastSeen = now(); saveUsers(users); broadcast('presence', {id: u.id, t: u.lastSeen}); }
-  }
-  setInterval(markActive, 5000);
-  window.addEventListener('focus', markActive);
-  document.addEventListener('click', markActive);
-
-  /* --------- UI Rendering --------- */
-  const authArea = document.getElementById('authArea');
-  function renderAuthArea(){
-    authArea.innerHTML = '';
-    const sess = JSON.parse(localStorage.getItem(STORAGE_SESSION) || 'null');
-    if(sess){
-      const users = loadUsers();
-      const u = users.find(x => x.id === sess.id);
-      if(u) currentUser = u;
-    }
-    if(currentUser){
-      const wrapper = document.createElement('div');
-      wrapper.style.display = 'flex';
-      wrapper.style.alignItems = 'center';
-      wrapper.style.gap = '8px';
-      wrapper.innerHTML = `
-        <div class="small">${currentUser.name} ${currentUser.lastName[0]}. • ${currentUser.rank}</div>
-        <button id="logoutBtn" class="pill small">Wyloguj</button>
-      `;
-      authArea.appendChild(wrapper);
-      document.getElementById('logoutBtn').onclick = () => { clearSession(); showLoginOnStart(); }
-    } else {
-      const wrapper = document.createElement('div');
-      wrapper.innerHTML = `
-        <button id="showLogin" class="pill small">Zaloguj</button>
-        <button id="showRegister" class="pill small">Zarejestruj</button>
-      `;
-      authArea.appendChild(wrapper);
-      document.getElementById('showLogin').onclick = openLoginModal;
-      document.getElementById('showRegister').onclick = openRegisterModal;
-    }
-  }
-  renderAuthArea();
-
-  function renderProfile(){
-    document.getElementById('profileName').textContent = currentUser ? currentUser.name : '—';
-    document.getElementById('profileLastName').textContent = currentUser ? currentUser.lastName : '—';
-    document.getElementById('profileEmail').textContent = currentUser ? currentUser.email : '—';
-    document.getElementById('profileRank').textContent = currentUser ? currentUser.rank : '—';
-    document.getElementById('changeEmailBtn').onclick = () => { if(!currentUser) return openLoginModal(); openChangeEmailModal(); }
-
-    // show admin button for Generał / owner
-    const adminBtn = document.getElementById('adminPanelBtn');
-    if(currentUser && (currentUser.rank === 'Generał' || currentUser.isOwner)){
-      adminBtn.style.display = 'inline-block';
-    } else {
-      adminBtn.style.display = 'none';
-    }
-
-    // show block overlay if current user is blocked
-    if(currentUser && currentUser.blocked){
-      document.getElementById('overlayBlock').style.display = 'flex';
-    } else {
-      document.getElementById('overlayBlock').style.display = 'none';
-    }
-  }
-
-  /* --------- Messages (chat) --------- */
-  function renderMessages(){
-    const messages = loadChat();
-    const el = document.getElementById('messages');
-    el.innerHTML = '';
-    messages.slice(-500).forEach(m => {
-      const div = document.createElement('div');
-      div.className = 'msg ' + (currentUser && m.fromId === currentUser.id ? 'me' : 'other');
-      const users = loadUsers();
-      const u = users.find(x => x.id === m.fromId);
-      const name = u ? `${u.name} ${u.lastName[0]}.` : 'Nieznany';
-      div.innerHTML = `<div style="font-size:12px;color:var(--muted)">${name} <span style="font-size:11px;color:var(--muted)">· ${new Date(m.t).toLocaleTimeString()}</span></div><div style="margin-top:6px">${escapeHtml(m.text)}</div>`;
-      el.appendChild(div);
-    });
-    el.scrollTop = el.scrollHeight;
-  }
-  renderMessages();
-
-  document.getElementById('sendBtn').onclick = sendMessage;
-  document.getElementById('msgInput').addEventListener('keydown', (e) => { if(e.key === 'Enter') sendMessage(); });
-
-  function sendMessage(){
-    if(!currentUser){ alert('Musisz się zalogować.'); openLoginModal(); return; }
-    const users = loadUsers();
-    const me = users.find(x => x.id === currentUser.id);
-    if(me && me.muted){ alert('Jesteś wyciszony i nie możesz pisać.'); return; }
-    if(me && me.blocked){ alert('Jesteś zablokowany.'); return; }
-    const input = document.getElementById('msgInput');
-    const text = input.value.trim();
-    if(!text) return;
-    const msg = { id: uid(), fromId: currentUser.id, text, t: now() };
-    const chat = loadChat();
-    chat.push(msg);
-    saveChat(chat);
-    broadcast('chat', msg);
-    input.value = '';
-    renderMessages();
-  }
-
-  /* --------- User list & interactions --------- */
-  const userListWrap = document.getElementById('userListWrap');
-  function renderUserList(){
-    const users = loadUsers().slice().sort((a,b) => {
-      if(a.rank === b.rank) return a.name.localeCompare(b.name);
-      return RANKS.indexOf(a.rank) - RANKS.indexOf(b.rank);
-    });
-    userListWrap.innerHTML = '';
-    users.forEach(u => {
-      const row = document.createElement('div');
-      row.className = 'user-row';
-
-      const left = document.createElement('div');
-      left.className = 'user-left';
-
-      const dot = document.createElement('div');
-      dot.className = 'dot';
-      const active = (now() - (u.lastSeen || 0)) < 30000; // 30s window
-      dot.style.background = active ? 'var(--accent)' : 'var(--danger)';
-      left.appendChild(dot);
-
-      const info = document.createElement('div');
-      info.innerHTML = `<div class="rankLabel">${u.rank} | ${u.name} ${u.lastName[0]}.</div><div class="small">${u.email || ''}</div>`;
-      left.appendChild(info);
-
-      row.appendChild(left);
-
-      const controls = document.createElement('div');
-      controls.innerHTML = `<span class="hoverPlus" title="Edytuj rangę">+</span>`;
-      controls.querySelector('.hoverPlus').onclick = (e) => {
-        e.stopPropagation();
-        openAssignRankModal(u.id);
-      };
-      row.appendChild(controls);
-
-      row.onclick = () => { openUserDetailModal(u.id); };
-
-      userListWrap.appendChild(row);
-    });
-  }
-  renderUserList();
-
-  /* --------- Sidebar toggle (big arrow) --------- */
-  const sideToggleBtn = document.getElementById('sideToggle');
-  let sideOpen = true;
-  sideToggleBtn.addEventListener('click', toggleSide);
-  function toggleSide(){
-    const side = document.querySelector('aside.right');
-    const listWrap = document.getElementById('userListWrap');
-    if(sideOpen){
-      side.style.width = '60px';
-      side.style.padding = '12px 6px';
-      listWrap.style.display = 'none';
-      sideToggleBtn.innerText = '❮';
-      sideOpen = false;
-    } else {
-      side.style.width = '360px';
-      side.style.padding = '12px';
-      listWrap.style.display = 'block';
-      sideToggleBtn.innerText = '❯';
-      sideOpen = true;
-    }
-  }
-
-  /* --------- Modal helpers --------- */
-  const modalRoot = document.getElementById('modalRoot');
-  function openModal(html){
-    modalRoot.innerHTML = `
-      <div id="overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:9999">
-        <div class="card modal">${html}</div>
-      </div>
-    `;
-    document.getElementById('overlay').addEventListener('click', (e) => { if(e.target.id === 'overlay') closeModal(); });
-  }
-  function closeModal(){ modalRoot.innerHTML = ''; }
-
-  /* --------- Login / Register (blocking on start) --------- */
-  function openLoginModal(){
-    openModal(`
-      <h3>Logowanie</h3>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <input id="loginEmail" type="email" placeholder="Email" />
-        <input id="loginPass" type="password" placeholder="Hasło" />
-        <div style="display:flex;gap:8px;justify-content:flex-end">
-          <button id="cancelLogin" class="pill small">Anuluj</button>
-          <button id="doLogin" class="pill small">Zaloguj</button>
-        </div>
-      </div>
-    `);
-    document.getElementById('cancelLogin').onclick = () => { closeModal(); showLoginOnStart(); };
-    document.getElementById('doLogin').onclick = () => {
-      const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-      const pass = document.getElementById('loginPass').value;
-      const users = loadUsers();
-      const u = users.find(x => x.email.toLowerCase() === email && x.pass === pass);
-      if(!u){ alert('Błędny email lub hasło.'); return; }
-      if(u.blocked){ document.getElementById('overlayBlock').style.display = 'flex'; /* will also login but show overlay */ }
-      setSession(u);
-      closeModal();
-    };
-  }
-
-  function openRegisterModal(){
-    openModal(`
-      <h3>Rejestracja</h3>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <input id="regName" placeholder="Imię" />
-        <input id="regLast" placeholder="Nazwisko" />
-        <input id="regEmail" type="email" placeholder="Email" />
-        <input id="regPass" type="password" placeholder="Hasło" />
-        <div style="display:flex;gap:8px;justify-content:flex-end">
-          <button id="cancelReg" class="pill small">Anuluj</button>
-          <button id="doReg" class="pill small">Zarejestruj</button>
-        </div>
-      </div>
-    `);
-    document.getElementById('cancelReg').onclick = () => { closeModal(); showLoginOnStart(); };
-    document.getElementById('doReg').onclick = () => {
-      const name = document.getElementById('regName').value.trim();
-      const last = document.getElementById('regLast').value.trim();
-      const email = document.getElementById('regEmail').value.trim().toLowerCase();
-      const pass = document.getElementById('regPass').value;
-      if(!name || !last || !email || !pass){ alert('Wypełnij wszystkie pola.'); return; }
-      const users = loadUsers();
-      if(users.some(x => x.email.toLowerCase() === email)){ alert('Konto o tym mailu już istnieje.'); return; }
-      const u = { id: uid(), name, lastName: last, email, pass, rank: DEFAULT_RANK, lastSeen: now(), muted: false, blocked: false, warned: false };
-      users.push(u); saveUsers(users);
-      broadcast('user-update', { id: u.id });
-      setSession(u);
-      closeModal();
-      renderUserList();
-    };
-  }
-
-  /* Block-on-start */
-  function showLoginOnStart(){
-    openLoginModal();
-    // ensure overlay captures clicks
-    const overlay = document.getElementById('overlay');
-    if(overlay) overlay.style.pointerEvents = 'auto';
-  }
-
-  /* --------- Assign rank interface (plus on hover) --------- */
-  function openAssignRankModal(targetId){
-    if(!currentUser){ alert('Musisz się zalogować.'); openLoginModal(); return; }
-    const users = loadUsers();
-    const target = users.find(x => x.id === targetId);
-    if(!target) return alert('Użytkownik nie znaleziony.');
-
-    // permissions: owner OR Generał OR self
-    const canAssign = (currentUser.isOwner) || (currentUser.rank === 'Generał') || (currentUser.id === targetId);
-    if(!canAssign) return alert('Nie masz uprawnień do nadawania rang.');
-
-    // cannot edit owner unless owner
-    const owner = users.find(x => x.isOwner);
-    if(owner && targetId === owner.id && !currentUser.isOwner) return alert('Nie możesz zmieniać rangi właściciela.');
-
-    openModal(`
-      <h3>Edytuj rangę — ${target.name} ${target.lastName}</h3>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <select id="rankSelect">
-          ${RANKS.map(r => `<option ${r === target.rank ? 'selected' : ''}>${r}</option>`).join('')}
-        </select>
-        <div style="display:flex;justify-content:flex-end;gap:8px">
-          <button id="cancelAssign" class="pill small">Anuluj</button>
-          <button id="saveAssign" class="pill small">Zapisz</button>
-        </div>
-      </div>
-    `);
-    document.getElementById('cancelAssign').onclick = closeModal;
-    document.getElementById('saveAssign').onclick = () => {
-      const newRank = document.getElementById('rankSelect').value;
-      const users2 = loadUsers();
-      const t = users2.find(x => x.id === targetId);
-      if(!t) return;
-      t.rank = newRank;
-      saveUsers(users2);
-      broadcast('user-update', { id: t.id });
-      closeModal();
-      renderUserList();
-      renderProfile();
-    };
-  }
-
-  /* --------- User detail modal (kick) --------- */
-  function openUserDetailModal(targetId){
-    const users = loadUsers();
-    const u = users.find(x => x.id === targetId);
-    if(!u) return;
-    const canAdmin = currentUser && ( (currentUser.rank === 'Generał') || currentUser.isOwner ) && !u.isOwner;
-    openModal(`
-      <h3>Informacje — ${u.name} ${u.lastName}</h3>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <div><strong>Ranga:</strong> ${u.rank}</div>
-        <div><strong>Email:</strong> ${u.email}</div>
-        <div><strong>Aktywny:</strong> ${(now() - (u.lastSeen || 0)) < 30000 ? 'tak' : 'nie'}</div>
-        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
-          <button id="closeDetail" class="pill small">Zamknij</button>
-          ${canAdmin ? '<button id="kickBtn" class="pill small">Wyrzuć</button>' : ''}
-        </div>
-      </div>
-    `);
-    document.getElementById('closeDetail').onclick = closeModal;
-    if(canAdmin){
-      document.getElementById('kickBtn').onclick = () => {
-        if(!confirm('Usunąć użytkownika?')) return;
-        const us = loadUsers().filter(x => x.id !== u.id);
-        saveUsers(us);
-        broadcast('user-update', { id: u.id });
-        closeModal();
-        renderUserList();
-      };
-    }
-  }
-
-  /* --------- Settings & admin panel --------- */
-  document.getElementById('settingsGear').onclick = openSettingsModal;
-  document.getElementById('adminPanelBtn').onclick = openAdminPanel;
-
-  function openSettingsModal(){
-    openModal(`
-      <h3>Ustawienia</h3>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <div><strong>Tryb:</strong>
-          <select id="themeSelect"><option>light</option><option>dark</option></select>
-        </div>
-
-        <div><strong>Zmień hasło</strong>
-          <input id="oldPass" type="password" placeholder="Stare hasło" />
-          <input id="newPass" type="password" placeholder="Nowe hasło" />
-          <button id="changePassBtn" class="pill small">Zmień hasło</button>
-        </div>
-
-        <div style="display:flex;justify-content:flex-end">
-          <button id="closeSettings" class="pill small">Zamknij</button>
-        </div>
-      </div>
-    `);
-
-    document.getElementById('closeSettings').onclick = closeModal;
-    document.getElementById('themeSelect').value = document.body.getAttribute('data-theme') || 'light';
-    document.getElementById('themeSelect').onchange = (e) => document.body.setAttribute('data-theme', e.target.value);
-
-    document.getElementById('changePassBtn').onclick = () => {
-      if(!currentUser){ alert('Musisz być zalogowany.'); return; }
-      const oldP = document.getElementById('oldPass').value;
-      const newP = document.getElementById('newPass').value;
-      const users = loadUsers();
-      const me = users.find(x => x.id === currentUser.id);
-      if(me.pass !== oldP){ alert('Stare hasło nie pasuje.'); return; }
-      if(!newP){ alert('Podaj nowe hasło.'); return; }
-      me.pass = newP;
-      saveUsers(users);
-      broadcast('user-update', { id: me.id });
-      alert('Hasło zmienione.');
-      closeModal();
-    };
-  }
-
-  function openChangeEmailModal(){
-    if(!currentUser) return openLoginModal();
-    openModal(`
-      <h3>Zmień email</h3>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <input id="newEmail" type="email" value="${currentUser.email}" />
-        <div style="display:flex;justify-content:flex-end;gap:8px">
-          <button id="cancelEmail" class="pill small">Anuluj</button>
-          <button id="saveEmail" class="pill small">Zapisz</button>
-        </div>
-      </div>
-    `);
-    document.getElementById('cancelEmail').onclick = closeModal;
-    document.getElementById('saveEmail').onclick = () => {
-      const ne = document.getElementById('newEmail').value.trim().toLowerCase();
-      if(!ne) return alert('Podaj email.');
-      const users = loadUsers();
-      if(users.some(x => x.email.toLowerCase() === ne && x.id !== currentUser.id)) return alert('Email zajęty.');
-      const me = users.find(x => x.id === currentUser.id);
-      me.email = ne;
-      saveUsers(users);
-      broadcast('user-update', { id: me.id });
-      currentUser = me;
-      renderProfile();
-      closeModal();
-    };
-  }
-
-  /* --------- Admin panel (Generałowie + owner) --------- */
-  function openAdminPanel(){
-    if(!currentUser) return openLoginModal();
-    if(!(currentUser.rank === 'Generał' || currentUser.isOwner)) return alert('Brak uprawnień.');
-
-    const users = loadUsers().filter(x => !x.isOwner);
-    openModal(`
-      <h3>Panel admina</h3>
-      <div style="display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow:auto">
-        ${users.map(u => `
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid rgba(0,0,0,0.04)">
-            <div>
-              <strong>${u.name} ${u.lastName}</strong>
-              <div class="small">${u.email}</div>
-            </div>
-            <div style="display:flex;gap:6px">
-              <button class="pill small admin-kick" data-id="${u.id}">Wyrzuć</button>
-              <button class="pill small admin-mute" data-id="${u.id}">${u.muted ? 'Odmute' : 'Wycisz'}</button>
-              <button class="pill small admin-warn" data-id="${u.id}">Ostrzeż</button>
-              <button class="pill small admin-block" data-id="${u.id}">${u.blocked ? 'Odblokuj' : 'Zablokuj'}</button>
-            </div>
-          </div>`).join('')}
-      </div>
-      <div style="display:flex;justify-content:flex-end;margin-top:8px"><button id="closeAdmin" class="pill small">Zamknij</button></div>
-    `);
-
-    document.getElementById('closeAdmin').onclick = closeModal;
-
-    document.querySelectorAll('.admin-kick').forEach(b => b.onclick = () => {
-      const id = b.dataset.id;
-      if(!confirm('Wyrzucić użytkownika?')) return;
-      const us = loadUsers().filter(x => x.id !== id);
-      saveUsers(us);
-      broadcast('user-update', { id });
-      renderUserList();
-      closeModal();
-      alert('Użytkownik usunięty.');
-    });
-
-    document.querySelectorAll('.admin-mute').forEach(b => b.onclick = () => {
-      const id = b.dataset.id;
-      const users = loadUsers();
-      const t = users.find(x => x.id === id);
-      t.muted = !t.muted;
-      saveUsers(users);
-      broadcast('admin-action', { type: 'mute', target: id, by: currentUser.id, muted: t.muted });
-      renderUserList();
-      alert(t.muted ? 'Użytkownik wyciszony.' : 'Użytkownik odciszony.');
-    });
-
-    document.querySelectorAll('.admin-warn').forEach(b => b.onclick = () => {
-      const id = b.dataset.id;
-      const users = loadUsers();
-      const t = users.find(x => x.id === id);
-      t.warned = true;
-      saveUsers(users);
-      broadcast('admin-action', { type: 'warn', target: id, by: currentUser.id });
-      alert('Użytkownik został ostrzeżony.');
-    });
-
-    document.querySelectorAll('.admin-block').forEach(b => b.onclick = () => {
-      const id = b.dataset.id;
-      const users = loadUsers();
-      const t = users.find(x => x.id === id);
-      t.blocked = !t.blocked;
-      saveUsers(users);
-      broadcast('admin-action', { type: 'block', target: id, by: currentUser.id, blocked: t.blocked });
-      renderUserList();
-      alert(t.blocked ? 'Użytkownik zablokowany.' : 'Użytkownik odblokowany.');
-    });
-  }
-
-  function applyAdminAction(payload){
-    const users = loadUsers();
-    const t = users.find(x => x.id === payload.target);
-    if(!t) return;
-    if(payload.type === 'mute'){
-      t.muted = payload.muted !== undefined ? payload.muted : !t.muted;
-      saveUsers(users);
-      renderUserList();
-    } else if(payload.type === 'warn'){
-      t.warned = true; saveUsers(users); renderUserList();
-    } else if(payload.type === 'block'){
-      t.blocked = payload.blocked; saveUsers(users); renderUserList();
-      if(currentUser && currentUser.id === t.id){
-        if(t.blocked) { document.getElementById('overlayBlock').style.display = 'flex'; }
-        else { document.getElementById('overlayBlock').style.display = 'none'; }
-      }
-    }
-  }
-
-  /* --------- Load on start: show login if not logged --------- */
-  function createOwnerIfMissing(){
-    const users = loadUsers();
-    if(!users.find(x => x.email === OWNER_EMAIL)){
       users.push({
         id: uid(),
         name: OWNER_NAME,
@@ -765,37 +277,396 @@
         lastSeen: now(),
         muted: false,
         blocked: false,
-        warned: false
+        warned: false,
+        avatar: ''
       });
+      saveUsers(users);
+    }
+  })();
+
+  /******************** Session & Presence ********************/
+  let currentUser = null;
+  function setSession(user){
+    currentUser = user;
+    localStorage.setItem(STORAGE_SESSION, JSON.stringify({id: user.id, t: now()}));
+    renderAuthArea();
+    renderSoldiers();
+    renderMessages();
+    renderSettingsProfile();
+    markActive();
+    broadcast('presence', { id: user.id, t: now() });
+  }
+  function clearSession(){
+    currentUser = null;
+    localStorage.removeItem(STORAGE_SESSION);
+    renderAuthArea();
+  }
+  function markActive(){
+    if(!currentUser) return;
+    const users = loadUsers();
+    const u = users.find(x => x.id === currentUser.id);
+    if(u){ u.lastSeen = now(); saveUsers(users); broadcast('presence', { id: u.id, t: u.lastSeen }); }
+  }
+  setInterval(markActive, 5000);
+
+  /******************** UI: Auth area (header) ********************/
+  function renderAuthArea(){
+    const a = el('#authArea');
+    a.innerHTML = '';
+    const sess = JSON.parse(localStorage.getItem(STORAGE_SESSION) || 'null');
+    if(sess){
+      const users = loadUsers();
+      const u = users.find(x => x.id === sess.id);
+      if(u) currentUser = u;
+    }
+    if(currentUser){
+      const wrap = document.createElement('div'); wrap.style.display='flex'; wrap.style.gap='10px'; wrap.style.alignItems='center';
+      wrap.innerHTML = `<div class="small">${currentUser.name} ${currentUser.lastName[0]}. • ${currentUser.rank}</div><button id="logoutBtn" class="pill small">Wyloguj</button>`;
+      a.appendChild(wrap);
+      el('#logoutBtn').onclick = () => { clearSession(); showAuthModal('registerIfFirst'); showToast('Wylogowano.', 'success'); };
+      // show admin button if Generał or owner
+      const adminBtn = el('#adminPanelBtn');
+      if(currentUser.rank === 'Generał' || currentUser.isOwner) adminBtn.style.display = 'inline-block'; else adminBtn.style.display = 'none';
+    } else {
+      a.innerHTML = `<button id="showAuthBtn" class="pill small">Zaloguj / Zarejestruj</button>`;
+      el('#showAuthBtn').onclick = () => showAuthModal('registerIfFirst');
+    }
+  }
+
+  /******************** Soldiers list rendering ********************/
+  function renderSoldiers(){
+    const wrap = el('#soldiers'); wrap.innerHTML = '';
+    const users = loadUsers().slice().sort((a,b)=> {
+      if(a.rank === b.rank) return a.name.localeCompare(b.name);
+      return RANKS.indexOf(a.rank) - RANKS.indexOf(b.rank);
+    });
+    users.forEach(u => {
+      const row = document.createElement('div'); row.className = 'soldier';
+      const left = document.createElement('div'); left.className = 'leftInfo';
+      const dot = document.createElement('div'); dot.className = 'avatarDot';
+      const active = (now() - (u.lastSeen || 0)) < 30000;
+      dot.style.background = active ? 'var(--accent-2)' : 'var(--danger)';
+      left.appendChild(dot);
+      const info = document.createElement('div'); info.innerHTML = `<div class="rankLabel">${u.rank} | ${u.name} ${u.lastName[0]}.</div><div class="small">${u.email || ''}</div>`;
+      left.appendChild(info);
+      row.appendChild(left);
+      const controls = document.createElement('div');
+      controls.innerHTML = `<button class="plusBtn" title="Edytuj rangę">+</button>`;
+      controls.querySelector('button').onclick = (e) => { e.stopPropagation(); openRankModal(u.id); };
+      row.appendChild(controls);
+      row.onclick = () => openUserDetail(u.id);
+      wrap.appendChild(row);
+    });
+  }
+
+  /******************** Chat rendering ********************/
+  function renderMessages(){
+    const box = el('#messages'); box.innerHTML = '';
+    const chat = loadChat();
+    chat.slice(-500).forEach(m => {
+      const div = document.createElement('div'); div.className = 'msg ' + ((currentUser && m.fromId === currentUser.id) ? 'me' : 'other');
+      const users = loadUsers();
+      const u = users.find(x => x.id === m.fromId);
+      const name = u ? `${u.name} ${u.lastName[0]}.` : 'Nieznany';
+      div.innerHTML = `<div style="font-size:12px;color:var(--muted)">${name} <span style="font-size:11px;color:var(--muted)">· ${new Date(m.t).toLocaleTimeString()}</span></div><div style="margin-top:6px">${escapeHtml(m.text)}</div>`;
+      box.appendChild(div);
+    });
+    box.scrollTop = box.scrollHeight;
+  }
+
+  el('#sendBtn').onclick = () => sendMessage();
+  el('#msgInput').addEventListener('keydown', (e) => { if(e.key === 'Enter') sendMessage(); });
+
+  function sendMessage(){
+    if(!currentUser){ showToast('Musisz się zalogować.', 'error'); showAuthModal('login'); return; }
+    const users = loadUsers(); const me = users.find(x=>x.id === currentUser.id);
+    if(me && me.muted){ showToast('Jesteś wyciszony i nie możesz pisać.', 'error'); return; }
+    if(me && me.blocked){ showToast('Jesteś zablokowany.', 'error'); return; }
+    const input = el('#msgInput'); const text = input.value.trim(); if(!text) return;
+    const msg = { id: uid(), fromId: currentUser.id, text, t: now() };
+    const chat = loadChat(); chat.push(msg); saveChat(chat);
+    broadcast('chat', msg); input.value = ''; renderMessages();
+  }
+
+  /******************** Sidebar toggle ********************/
+  let sideOpen = true;
+  el('#sideToggle').onclick = toggleSide;
+  function toggleSide(){
+    const aside = document.querySelector('aside.right');
+    if(sideOpen){ aside.style.width='72px'; el('#soldiers').style.display='none'; el('#sideToggle').innerText='❮'; sideOpen=false; }
+    else { aside.style.width='380px'; el('#soldiers').style.display='block'; el('#sideToggle').innerText='❯'; sideOpen=true; }
+  }
+
+  /******************** Modal helpers ********************/
+  function openModalInner(html, opts={}) {
+    const root = el('#modalRoot'); root.innerHTML = `<div style="position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:9999"><div class="modalCard">${html}</div></div>`;
+    if(opts.noclose) root.querySelector('div').onclick = (e)=>{ if(e.target === root.querySelector('div')){} };
+  }
+  function closeModal(){ el('#modalRoot').innerHTML = ''; }
+
+  /******************** Auth modal (register / login) ********************/
+  // shows register by default on first run (if no non-owner users exist)
+  function showAuthModal(prefer='registerIfFirst'){
+    const users = loadUsers();
+    const onlyOwner = users.length === 1 && users[0].isOwner;
+    const defaultTab = (prefer === 'login') ? 'login' : (prefer === 'register' ? 'register' : (onlyOwner ? 'register' : 'login'));
+    renderAuthWidget(defaultTab);
+  }
+
+  function renderAuthWidget(tab='register'){
+    openModalInner(`
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:center;margin-bottom:6px"><img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=120&auto=format&fit=crop&ixlib=rb-4.0.3&s=7f3e7f8edb2a4b6f2d1f3d292e5f6b2a" alt="" style="width:80px;height:80px;border-radius:12px;object-fit:cover;border:2px solid rgba(255,255,255,0.06)"></div>
+        <div class="tabs">
+          <div id="tabRegister" class="tabBtn ${tab==='register'?'active':''}">ZAREJESTRUJ SIĘ</div>
+          <div id="tabLogin" class="tabBtn ${tab==='login'?'active':''}">ZALOGUJ SIĘ</div>
+        </div>
+
+        <div id="registerForm" style="display:${tab==='register' ? 'block' : 'none'}">
+          <div class="formRow"><label class="small">IMIĘ:</label><input id="regName" placeholder="Imię"></div>
+          <div class="formRow"><label class="small">NAZWISKO:</label><input id="regLast" placeholder="Nazwisko"></div>
+          <div class="formRow"><label class="small">GMAIL:</label><input id="regEmail" type="email" placeholder="example@gmail.com"></div>
+          <div class="formRow"><label class="small">HASŁO:</label><input id="regPass" type="password" placeholder="Hasło"></div>
+          <div class="formRow"><label class="small">POWTÓRZ HASŁO:</label><input id="regPass2" type="password" placeholder="Powtórz hasło"></div>
+          <div style="display:flex;justify-content:flex-end;gap:8px"><button id="doRegister" class="pill small">Zarejestruj</button></div>
+          <div class="small center" style="margin-top:6px">Masz konto? <span id="toLogin" style="color:var(--accent);cursor:pointer;margin-left:6px">ZALOGUJ SIĘ</span></div>
+        </div>
+
+        <div id="loginForm" style="display:${tab==='login' ? 'block' : 'none'}">
+          <div class="formRow"><label class="small">GMAIL:</label><input id="loginEmail" type="email" placeholder="example@gmail.com"></div>
+          <div class="formRow"><label class="small">HASŁO:</label><input id="loginPass" type="password" placeholder="Hasło"></div>
+          <div style="display:flex;justify-content:flex-end;gap:8px"><button id="doLogin" class="pill small">Zaloguj</button></div>
+          <div class="small center" style="margin-top:6px">Nie masz konta? <span id="toRegister" style="color:var(--accent);cursor:pointer;margin-left:6px">ZAREJESTRUJ SIĘ</span></div>
+        </div>
+      </div>
+    `);
+
+    // tabs handlers
+    el('#tabRegister').onclick = () => { el('#tabRegister').classList.add('active'); el('#tabLogin').classList.remove('active'); el('#registerForm').style.display='block'; el('#loginForm').style.display='none'; }
+    el('#tabLogin').onclick = () => { el('#tabLogin').classList.add('active'); el('#tabRegister').classList.remove('active'); el('#registerForm').style.display='none'; el('#loginForm').style.display='block'; }
+    el('#toLogin').onclick = () => el('#tabLogin').click();
+    el('#toRegister').onclick = () => el('#tabRegister').click();
+
+    // register action
+    el('#doRegister').onclick = () => {
+      const name = el('#regName').value.trim();
+      const last = el('#regLast').value.trim();
+      const email = el('#regEmail').value.trim().toLowerCase();
+      const pass = el('#regPass').value;
+      const pass2 = el('#regPass2').value;
+      if(!name || !last || !email || !pass || !pass2){ showToast('Wypełnij wszystkie pola.', 'error'); return; }
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ showToast('Nieprawidłowy adres email.', 'error'); return; }
+      if(pass !== pass2){ showToast('Hasła nie są takie same.', 'error'); return; }
+      const users = loadUsers();
+      if(users.some(u => u.email.toLowerCase() === email)){ showToast('Konto o tym emailu już istnieje.', 'error'); return; }
+      const u = { id: uid(), name, lastName: last, email, pass, rank: DEFAULT_RANK, lastSeen: now(), muted: false, blocked: false, warned: false, avatar: '' };
+      users.push(u); saveUsers(users); broadcast('user-update', { id: u.id });
+      setSession(u);
+      closeModal();
+      showToast('Zarejestrowano pomyślnie.', 'success');
+    };
+
+    // login action
+    el('#doLogin').onclick = () => {
+      const email = el('#loginEmail').value.trim().toLowerCase();
+      const pass = el('#loginPass').value;
+      if(!email || !pass){ showToast('Wypełnij email i hasło.', 'error'); return; }
+      const users = loadUsers();
+      const u = users.find(x => x.email.toLowerCase() === email && x.pass === pass);
+      if(!u){ showToast('Błędny email lub hasło.', 'error'); return; }
+      if(u.blocked){ el('#overlayBlock').style.display = 'flex'; /* still allow login but overlay appears */ }
+      setSession(u); closeModal(); showToast('Zalogowano pomyślnie.', 'success');
+    };
+  }
+
+  /******************** Rank modal ********************/
+  function openRankModal(targetId){
+    if(!currentUser){ showToast('Musisz się zalogować.', 'error'); showAuthModal('login'); return; }
+    const users = loadUsers(); const target = users.find(x=>x.id===targetId);
+    if(!target) return showToast('Użytkownik nie znaleziony.', 'error');
+    const canAssign = (currentUser.isOwner) || (currentUser.rank === 'Generał') || (currentUser.id === targetId);
+    if(!canAssign) return showToast('Brak uprawnień do nadawania rang.', 'error');
+    const owner = users.find(x=>x.isOwner);
+    if(owner && targetId === owner.id && !currentUser.isOwner) return showToast('Nie możesz zmieniać właściciela.', 'error');
+
+    openModalInner(`
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <h3>Edytuj rangę — ${target.name} ${target.lastName}</h3>
+        <div><select id="rankSelect">${RANKS.map(r => `<option ${r===target.rank?'selected':''}>${r}</option>`).join('')}</select></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px"><button id="cancelRank" class="pill small">Anuluj</button><button id="saveRank" class="pill small">Zapisz</button></div>
+      </div>
+    `);
+    el('#cancelRank').onclick = closeModal;
+    el('#saveRank').onclick = () => {
+      const newRank = el('#rankSelect').value;
+      const users2 = loadUsers(); const t = users2.find(x=>x.id===targetId);
+      t.rank = newRank; saveUsers(users2); broadcast('user-update', { id: t.id }); closeModal(); renderSoldiers(); showToast('Ranga zmieniona.', 'success');
+    };
+  }
+
+  /******************** User detail & kick ********************/
+  function openUserDetail(id){
+    const users = loadUsers(); const u = users.find(x=>x.id===id);
+    if(!u) return;
+    const canAdmin = currentUser && ( (currentUser.rank === 'Generał') || currentUser.isOwner ) && !u.isOwner;
+    openModalInner(`
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <h3>Informacje — ${u.name} ${u.lastName}</h3>
+        <div><strong>Ranga:</strong> ${u.rank}</div>
+        <div><strong>Email:</strong> ${u.email}</div>
+        <div><strong>Aktywny:</strong> ${(now() - (u.lastSeen || 0)) < 30000 ? 'tak' : 'nie'}</div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+          <button id="closeD" class="pill small">Zamknij</button>
+          ${canAdmin ? '<button id="kickD" class="pill small">Wyrzuć</button>' : ''}
+        </div>
+      </div>
+    `);
+    el('#closeD').onclick = closeModal;
+    if(canAdmin){
+      el('#kickD').onclick = () => {
+        if(!confirm('Wyrzucić użytkownika?')) return;
+        const rest = loadUsers().filter(x=>x.id !== u.id); saveUsers(rest); broadcast('user-update', { id: u.id }); closeModal(); showToast('Użytkownik usunięty.', 'success');
+      };
+    }
+  }
+
+  /******************** Settings modal / Profile moved ********************/
+  el('#settingsGear').onclick = () => openSettings();
+
+  function openSettings(){
+    if(!currentUser){ showToast('Musisz się zalogować, aby edytować ustawienia.', 'error'); showAuthModal('login'); return; }
+    openModalInner(`
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <h3>Ustawienia</h3>
+        <div style="display:flex;gap:10px">
+          <div style="flex:1">
+            <div style="margin-bottom:8px"><strong>Profil</strong></div>
+            <div class="small">IMIĘ: <strong>${currentUser.name}</strong></div>
+            <div class="small">NAZWISKO: <strong>${currentUser.lastName}</strong></div>
+            <div class="formRow"><label class="small">Gmail:</label><input id="settingsEmail" type="email" value="${currentUser.email}" /></div>
+            <div class="formRow"><label class="small">Avatar (URL):</label><input id="settingsAvatar" type="text" value="${currentUser.avatar||''}" placeholder="https://..." /></div>
+          </div>
+          <div style="width:220px">
+            <div style="margin-bottom:8px"><strong>Bezpieczeństwo</strong></div>
+            <div class="formRow"><label class="small">Stare hasło:</label><input id="oldPass" type="password" /></div>
+            <div class="formRow"><label class="small">Nowe hasło:</label><input id="newPass" type="password" /></div>
+            <div style="display:flex;gap:8px;justify-content:flex-end"><button id="saveSettings" class="pill small">Zapisz</button></div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div class="small">Tryb</div>
+            <select id="themeSelect"><option value="dark">Ciemny</option><option value="light">Jasny</option></select>
+          </div>
+          <div><button id="closeSettings" class="pill small">Zamknij</button></div>
+        </div>
+      </div>
+    `);
+
+    el('#themeSelect').value = document.body.getAttribute('data-theme') || 'dark';
+    el('#themeSelect').onchange = (e) => document.body.setAttribute('data-theme', e.target.value);
+
+    el('#closeSettings').onclick = closeModal;
+    el('#saveSettings').onclick = () => {
+      const ne = el('#settingsEmail').value.trim().toLowerCase();
+      const avatar = el('#settingsAvatar').value.trim();
+      const oldP = el('#oldPass').value;
+      const newP = el('#newPass').value;
+      const users = loadUsers();
+      if(!ne) return showToast('Email nie może być pusty.', 'error');
+      if(users.some(x => x.email.toLowerCase() === ne && x.id !== currentUser.id)) return showToast('Email zajęty.', 'error');
+      const me = users.find(x => x.id === currentUser.id);
+      if(oldP || newP){
+        if(me.pass !== oldP) return showToast('Stare hasło nie pasuje.', 'error');
+        if(!newP) return showToast('Podaj nowe hasło.', 'error');
+        me.pass = newP;
+      }
+      me.email = ne; me.avatar = avatar;
+      saveUsers(users); broadcast('user-update', { id: me.id });
+      currentUser = me;
+      renderAuthArea(); renderSoldiers(); showToast('Ustawienia zapisane.', 'success'); closeModal();
+    };
+  }
+
+  /******************** Admin panel ********************/
+  el('#adminPanelBtn').onclick = () => {
+    if(!currentUser) { showToast('Musisz się zalogować.', 'error'); showAuthModal('login'); return; }
+    if(!(currentUser.rank === 'Generał' || currentUser.isOwner)) return showToast('Brak uprawnień.', 'error');
+    const users = loadUsers().filter(u => !u.isOwner);
+    openModalInner(`
+      <div style="display:flex;flex-direction:column;gap:8px;max-height:70vh;overflow:auto">
+        <h3>Panel admina</h3>
+        ${users.map(u => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid rgba(255,255,255,0.03)">
+            <div><strong>${u.name} ${u.lastName}</strong><div class="small">${u.email}</div></div>
+            <div style="display:flex;gap:6px">
+              <button class="pill small admin-kick" data-id="${u.id}">Wyrzuć</button>
+              <button class="pill small admin-mute" data-id="${u.id}">${u.muted ? 'Odmute' : 'Wycisz'}</button>
+              <button class="pill small admin-warn" data-id="${u.id}">Ostrzeż</button>
+              <button class="pill small admin-block" data-id="${u.id}">${u.blocked ? 'Odblokuj' : 'Zablokuj'}</button>
+            </div>
+          </div>`).join('')}
+        <div style="display:flex;justify-content:flex-end"><button id="closeAdmin" class="pill small">Zamknij</button></div>
+      </div>
+    `);
+    el('#closeAdmin').onclick = closeModal;
+    document.querySelectorAll('.admin-kick').forEach(b => b.onclick = () => {
+      const id = b.dataset.id;
+      if(!confirm('Wyrzucić użytkownika?')) return;
+      const rest = loadUsers().filter(x=>x.id!==id); saveUsers(rest); broadcast('user-update', { id }); renderSoldiers(); showToast('Użytkownik usunięty.', 'success'); closeModal();
+    });
+    document.querySelectorAll('.admin-mute').forEach(b => b.onclick = () => {
+      const id = b.dataset.id; const users = loadUsers(); const t = users.find(x=>x.id===id); t.muted = !t.muted; saveUsers(users); broadcast('admin-action', { type:'mute', target:id, muted: t.muted }); renderSoldiers(); showToast(t.muted ? 'Użytkownik wyciszony.' : 'Użytkownik odciszony.', 'success'); closeModal();
+    });
+    document.querySelectorAll('.admin-warn').forEach(b => b.onclick = () => {
+      const id = b.dataset.id; const users = loadUsers(); const t = users.find(x=>x.id===id); t.warned = true; saveUsers(users); broadcast('admin-action', { type:'warn', target:id }); showToast('Użytkownik ostrzeżony.', 'success'); closeModal();
+    });
+    document.querySelectorAll('.admin-block').forEach(b => b.onclick = () => {
+      const id = b.dataset.id; const users = loadUsers(); const t = users.find(x=>x.id===id); t.blocked = !t.blocked; saveUsers(users); broadcast('admin-action', { type:'block', target:id, blocked: t.blocked }); renderSoldiers(); showToast(t.blocked ? 'Użytkownik zablokowany.' : 'Użytkownik odblokowany.', 'success'); closeModal();
+    });
+  };
+
+  function applyAdminAction(payload){
+    const users = loadUsers(); const t = users.find(x=>x.id===payload.target); if(!t) return;
+    if(payload.type === 'mute'){ t.muted = payload.muted !== undefined ? payload.muted : !t.muted; saveUsers(users); renderSoldiers(); }
+    if(payload.type === 'warn'){ t.warned = true; saveUsers(users); renderSoldiers(); }
+    if(payload.type === 'block'){ t.blocked = payload.blocked; saveUsers(users); renderSoldiers(); if(currentUser && currentUser.id === t.id){ if(t.blocked) el('#overlayBlock').style.display='flex'; else el('#overlayBlock').style.display='none'; } }
+  }
+
+  /******************** Admin presence on load, start auth modal logic ********************/
+  function createOwnerIfMissing(){
+    const users = loadUsers();
+    if(!users.find(u => u.email === OWNER_EMAIL)){
+      users.push({ id: uid(), name: OWNER_NAME, lastName: OWNER_LAST, email: OWNER_EMAIL, pass: OWNER_PASS, rank: 'Generał', isOwner: true, lastSeen: now(), muted:false, blocked:false, warned:false, avatar:'' });
       saveUsers(users);
     }
   }
   createOwnerIfMissing();
 
   window.addEventListener('load', () => {
-    const sess = JSON.parse(localStorage.getItem(STORAGE_SESSION) || 'null');
-    if(sess){
-      const users = loadUsers();
-      const u = users.find(x => x.id === sess.id);
-      if(u){ currentUser = u; renderAuthArea(); renderProfile(); if(u.blocked) document.getElementById('overlayBlock').style.display = 'flex'; }
+    const s = JSON.parse(localStorage.getItem(STORAGE_SESSION) || 'null');
+    if(s){
+      const users = loadUsers(); const u = users.find(x=>x.id===s.id);
+      if(u){ currentUser = u; renderAuthArea(); renderSoldiers(); renderMessages(); renderSettingsProfile(); if(u.blocked) el('#overlayBlock').style.display='flex'; }
     }
-    if(!currentUser) showLoginOnStart();
-    renderMessages();
-    renderUserList();
+    // if not logged -> show register/login; default register if no other users except owner
+    if(!currentUser){
+      const users = loadUsers(); const onlyOwner = users.length === 1 && users[0].isOwner;
+      showAuthModal(onlyOwner ? 'register' : 'login');
+    }
+    renderSoldiers(); renderMessages();
   });
 
-  /* react to storage changes */
-  window.addEventListener('storage', (e) => {
-    if(e.key === STORAGE_CHAT || e.key === STORAGE_USERS){
-      renderMessages();
-      renderUserList();
-    }
-  });
+  /******************** Helpers for settings render ********************/
+  function renderSettingsProfile(){
+    // updates settings presence in header, admin button, overlay etc.
+    renderAuthArea();
+  }
 
-  /* expose some functions to global (for debugging if needed) */
-  window._qd = {
-    loadUsers, loadChat, saveUsers, saveChat, uid
-  };
+  /******************** Expose debug (optional) ********************/
+  window._qd = { loadUsers, loadChat, saveUsers, saveChat, uid };
+
   </script>
 </body>
 </html>
